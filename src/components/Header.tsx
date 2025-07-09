@@ -15,6 +15,14 @@ const Header = () => {
     navigate('/');
   };
 
+  const handleGetStarted = () => {
+    if (user) {
+      navigate('/dashboard');
+    } else {
+      navigate('/auth');
+    }
+  };
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -39,9 +47,9 @@ const Header = () => {
           <div className="hidden md:flex items-center space-x-4">
             {user ? (
               <>
-                <span className="text-sm text-muted-foreground">
-                  Welcome, {user.email}
-                </span>
+                <Button variant="ghost" onClick={() => navigate('/dashboard')}>
+                  Dashboard
+                </Button>
                 <Button variant="ghost" onClick={handleSignOut}>
                   <LogOut className="h-4 w-4 mr-2" />
                   Sign Out
@@ -54,7 +62,7 @@ const Header = () => {
                 </Button>
                 <Button 
                   className="gradient-primary text-white hover:opacity-90"
-                  onClick={() => navigate('/auth')}
+                  onClick={handleGetStarted}
                 >
                   Get Started Free
                 </Button>
@@ -82,9 +90,13 @@ const Header = () => {
               <div className="px-3 py-2 space-y-2">
                 {user ? (
                   <>
-                    <div className="text-sm text-muted-foreground px-3 py-2">
-                      Welcome, {user.email}
-                    </div>
+                    <Button 
+                      variant="ghost" 
+                      className="w-full"
+                      onClick={() => navigate('/dashboard')}
+                    >
+                      Dashboard
+                    </Button>
                     <Button variant="ghost" className="w-full" onClick={handleSignOut}>
                       <LogOut className="h-4 w-4 mr-2" />
                       Sign Out
@@ -101,7 +113,7 @@ const Header = () => {
                     </Button>
                     <Button 
                       className="w-full gradient-primary text-white"
-                      onClick={() => navigate('/auth')}
+                      onClick={handleGetStarted}
                     >
                       Get Started Free
                     </Button>
