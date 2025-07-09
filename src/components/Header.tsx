@@ -1,10 +1,19 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Menu, X, Sparkles } from 'lucide-react';
+import { Menu, X, Sparkles, LogOut } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b">
@@ -28,10 +37,29 @@ const Header = () => {
 
           {/* Desktop CTA Buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            <Button variant="ghost">Sign In</Button>
-            <Button className="gradient-primary text-white hover:opacity-90">
-              Get Started Free
-            </Button>
+            {user ? (
+              <>
+                <span className="text-sm text-muted-foreground">
+                  Welcome, {user.email}
+                </span>
+                <Button variant="ghost" onClick={handleSignOut}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign Out
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="ghost" onClick={() => navigate('/auth')}>
+                  Sign In
+                </Button>
+                <Button 
+                  className="gradient-primary text-white hover:opacity-90"
+                  onClick={() => navigate('/auth')}
+                >
+                  Get Started Free
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -52,8 +80,33 @@ const Header = () => {
               <a href="#about" className="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-foreground">About</a>
               <a href="#contact" className="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-foreground">Contact</a>
               <div className="px-3 py-2 space-y-2">
-                <Button variant="ghost" className="w-full">Sign In</Button>
-                <Button className="w-full gradient-primary text-white">Get Started Free</Button>
+                {user ? (
+                  <>
+                    <div className="text-sm text-muted-foreground px-3 py-2">
+                      Welcome, {user.email}
+                    </div>
+                    <Button variant="ghost" className="w-full" onClick={handleSignOut}>
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Sign Out
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button 
+                      variant="ghost" 
+                      className="w-full"
+                      onClick={() => navigate('/auth')}
+                    >
+                      Sign In
+                    </Button>
+                    <Button 
+                      className="w-full gradient-primary text-white"
+                      onClick={() => navigate('/auth')}
+                    >
+                      Get Started Free
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </div>
