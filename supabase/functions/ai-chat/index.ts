@@ -2,7 +2,6 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.3';
 
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
@@ -17,33 +16,186 @@ interface ChatRequest {
   userId: string;
 }
 
-const getBotSystemPrompt = (botType: string): string => {
-  const prompts: Record<string, string> = {
-    'Email Generator': 'You are an expert email writer. Generate professional, engaging emails based on the user\'s requirements. Consider tone, purpose, and audience.',
-    'Blog & Article Writer': 'You are a professional content writer. Create high-quality, SEO-friendly blog posts and articles that are informative and engaging.',
-    'Proposal & Legal Document Creator': 'You are a legal and business writing expert. Create professional proposals and legal documents with proper structure and language.',
-    'Live Customer Support Agent': 'You are a helpful customer support agent. Provide friendly, professional, and solution-oriented responses to customer inquiries.',
-    'Product & Market Researcher': 'You are a market research expert. Provide comprehensive analysis, insights, and data-driven recommendations about products and markets.',
-    'Code Generator': 'You are an expert programmer. Generate clean, efficient, and well-documented code in various programming languages based on user requirements.',
-    'Business Operations Manager': 'You are a business operations expert. Help with task management, planning, and business process optimization.',
-    'Language Translator Bot': 'You are a professional translator. Provide accurate translations while maintaining context and cultural nuances.',
-    'Automation Bot': 'You are a workflow automation expert. Help users design and implement automated processes and workflows.',
-    'AI Sales Funnel Builder': 'You are a sales and marketing expert. Create effective sales funnels with compelling copy and strategic flow.',
-    'Grant/Proposal Writer': 'You are a grant writing specialist. Create compelling, well-structured grant proposals and funding applications.',
-    'AI Tutor Bot': 'You are a patient and knowledgeable tutor. Explain concepts clearly and provide educational support tailored to the user\'s level.',
-    'Brand Builder Bot': 'You are a brand strategist. Help develop compelling brand identities, messaging, and positioning strategies.',
-    'Dropshipping Assistant': 'You are an e-commerce expert specializing in dropshipping. Provide practical advice for product selection, suppliers, and operations.',
-    'Resume + Cover Letter': 'You are a career counselor and resume expert. Create professional, ATS-friendly resumes and compelling cover letters.',
-    'Comment Responder': 'You are a social media expert. Generate engaging, appropriate responses to comments and social media interactions.',
-    'E-commerce Product Writer': 'You are an e-commerce copywriter. Create compelling product descriptions that drive sales and conversions.',
-    'Instagram Caption Generator': 'You are a social media content creator. Generate engaging, hashtag-optimized Instagram captions.',
-    'Ad Copy Generator': 'You are an advertising copywriter. Create compelling, conversion-focused ad copy for various platforms.',
-    'Script Generator': 'You are a scriptwriter. Create engaging scripts for videos, presentations, and other media content.',
-    'Tags/SEO Generator': 'You are an SEO expert. Generate relevant tags, keywords, and SEO-optimized content.',
-    'Chat Bot Code Generator': 'You are a chatbot development expert. Generate chatbot logic, flows, and implementation code.',
+const getBotConfig = (botType: string) => {
+  const configs: Record<string, { prompt: string; apiEndpoint: string; apiKey: string; model?: string }> = {
+    'Email Generator': {
+      prompt: 'You are an AI that writes personal, marketing, and follow-up emails.',
+      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
+      apiKey: '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',
+      model: 'mistralai/mixtral-8x7b-instruct'
+    },
+    'Blog & Article Writer': {
+      prompt: 'You are an AI that creates seo-optimized blogs and articles.',
+      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
+      apiKey: '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',
+      model: 'mistralai/mixtral-8x7b-instruct'
+    },
+    'Proposal & Legal Document Creator': {
+      prompt: 'You are an AI that drafts legal and business proposals.',
+      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
+      apiKey: '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',
+      model: 'mistralai/mixtral-8x7b-instruct'
+    },
+    'Live Customer Support Agent': {
+      prompt: 'You are an AI that acts as an automated live chat agent.',
+      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
+      apiKey: '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',
+      model: 'mistralai/mixtral-8x7b-instruct'
+    },
+    'Product & Market Researcher': {
+      prompt: 'You are an AI that provides ai-powered market insights.',
+      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
+      apiKey: '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',
+      model: 'mistralai/mixtral-8x7b-instruct'
+    },
+    'Code Generator': {
+      prompt: 'You are an AI that generates code snippets or scripts from instructions.',
+      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
+      apiKey: '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',
+      model: 'mistralai/mixtral-8x7b-instruct'
+    },
+    'Business Operations Manager': {
+      prompt: 'You are an AI that manages basic crm, tasks, and calendars.',
+      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
+      apiKey: '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',
+      model: 'mistralai/mixtral-8x7b-instruct'
+    },
+    'Language Translator Bot': {
+      prompt: 'You are an AI that translates text between multiple languages.',
+      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
+      apiKey: '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',
+      model: 'mistralai/mixtral-8x7b-instruct'
+    },
+    'AI Sales Funnel Builder': {
+      prompt: 'You are an AI that builds sales funnels from product ideas.',
+      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
+      apiKey: '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',
+      model: 'mistralai/mixtral-8x7b-instruct'
+    },
+    'Grant/Proposal Writer': {
+      prompt: 'You are an AI that writes grant or funding proposals.',
+      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
+      apiKey: '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',
+      model: 'mistralai/mixtral-8x7b-instruct'
+    },
+    'AI Tutor Bot': {
+      prompt: 'You are an AI that explains academic concepts like a teacher.',
+      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
+      apiKey: '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',
+      model: 'mistralai/mixtral-8x7b-instruct'
+    },
+    'Brand Builder Bot': {
+      prompt: 'You are an AI that helps brainstorm brand name and identity.',
+      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
+      apiKey: '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',
+      model: 'mistralai/mixtral-8x7b-instruct'
+    },
+    'Dropshipping Assistant': {
+      prompt: 'You are an AI that assists with product research for dropshipping.',
+      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
+      apiKey: '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',
+      model: 'mistralai/mixtral-8x7b-instruct'
+    },
+    'Resume + Cover Letter': {
+      prompt: 'You are an AI that creates tailored resumes and cover letters.',
+      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
+      apiKey: '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',
+      model: 'mistralai/mixtral-8x7b-instruct'
+    },
+    'Realistic AI Photo Generator': {
+      prompt: 'You are an AI that generates realistic photos.',
+      apiEndpoint: 'https://api.replicate.com/v1/predictions',
+      apiKey: 'r8_VDq8LS9tYPJV0jjXSYg8lCHqh8MB4ci3PFA6C'
+    },
+    'AI Video Generator': {
+      prompt: 'You are an AI that creates ai-generated videos.',
+      apiEndpoint: 'https://api.pexels.com/videos/search',
+      apiKey: '11mHiyyWTCXa6x86irYeXtkC2ueaeaUOwdMlMiggHINxpTQ4j5pltLYh'
+    },
+    'Logo Generator': {
+      prompt: 'You are an AI that designs logo ideas based on brand.',
+      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
+      apiKey: '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',
+      model: 'mistralai/mixtral-8x7b-instruct'
+    },
+    'Music & Lyrics Generator': {
+      prompt: 'You are an AI that generates music lyrics and melody ideas.',
+      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
+      apiKey: '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',
+      model: 'mistralai/mixtral-8x7b-instruct'
+    },
+    'Flyer Generator': {
+      prompt: 'You are an AI that creates marketing flyers.',
+      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
+      apiKey: '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',
+      model: 'mistralai/mixtral-8x7b-instruct'
+    },
+    'PDF Summarizer Bot': {
+      prompt: 'You are an AI that summarizes long pdf content.',
+      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
+      apiKey: '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',
+      model: 'mistralai/mixtral-8x7b-instruct'
+    },
+    'Voice Over from Text (Procast Bot)': {
+      prompt: 'You are an AI that generates voiceover from text.',
+      apiEndpoint: 'https://api.elevenlabs.io/v1/text-to-speech',
+      apiKey: 'sk_6c7fe06d5fe13818315e8d032be33050922b59de497a1d53'
+    },
+    'Comment Responder': {
+      prompt: 'You are an AI that replies to social media comments.',
+      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
+      apiKey: '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',
+      model: 'mistralai/mixtral-8x7b-instruct'
+    },
+    'E-commerce Product Writer': {
+      prompt: 'You are an AI that writes product descriptions.',
+      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
+      apiKey: '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',
+      model: 'mistralai/mixtral-8x7b-instruct'
+    },
+    'Instagram Caption Generator': {
+      prompt: 'You are an AI that creates captions for instagram posts.',
+      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
+      apiKey: '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',
+      model: 'mistralai/mixtral-8x7b-instruct'
+    },
+    'Ad Copy Generator': {
+      prompt: 'You are an AI that writes persuasive ad copy.',
+      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
+      apiKey: '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',
+      model: 'mistralai/mixtral-8x7b-instruct'
+    },
+    'Script Generator': {
+      prompt: 'You are an AI that generates video or podcast scripts.',
+      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
+      apiKey: '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',
+      model: 'mistralai/mixtral-8x7b-instruct'
+    },
+    'Tags/SEO Generator': {
+      prompt: 'You are an AI that generates tags and seo keywords.',
+      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
+      apiKey: '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',
+      model: 'mistralai/mixtral-8x7b-instruct'
+    },
+    'Thumbnail Generator': {
+      prompt: 'You are an AI that creates youtube-style thumbnails.',
+      apiEndpoint: 'https://api.replicate.com/v1/predictions',
+      apiKey: 'r8_VDq8LS9tYPJV0jjXSYg8lCHqh8MB4ci3PFA6C'
+    },
+    'Chat Bot Code Generator': {
+      prompt: 'You are an AI that generates chatbot logic/code.',
+      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
+      apiKey: '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',
+      model: 'mistralai/mixtral-8x7b-instruct'
+    }
   };
 
-  return prompts[botType] || 'You are a helpful AI assistant. Provide accurate and helpful responses to user queries.';
+  return configs[botType] || {
+    prompt: 'You are a helpful AI assistant. Provide accurate and helpful responses to user queries.',
+    apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
+    apiKey: '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',
+    model: 'mistralai/mixtral-8x7b-instruct'
+  };
 };
 
 serve(async (req) => {
@@ -54,9 +206,8 @@ serve(async (req) => {
   try {
     const { prompt, botType, userId }: ChatRequest = await req.json();
 
-    if (!openAIApiKey) {
-      throw new Error('OpenAI API key not configured');
-    }
+    // Get bot configuration
+    const botConfig = getBotConfig(botType);
 
     // Initialize Supabase client
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -96,33 +247,99 @@ serve(async (req) => {
       );
     }
 
-    // Call OpenAI API
-    const systemPrompt = getBotSystemPrompt(botType);
-    
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: prompt }
-        ],
-        max_tokens: 2000,
-        temperature: 0.7,
-      }),
-    });
+    let generatedText = '';
+    let tokensUsed = 0;
 
-    if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.statusText}`);
+    // Handle different API providers
+    if (botConfig.apiEndpoint.includes('openrouter.ai')) {
+      // OpenRouter API call
+      const response = await fetch(botConfig.apiEndpoint, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${botConfig.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: botConfig.model,
+          messages: [
+            { role: 'system', content: botConfig.prompt },
+            { role: 'user', content: prompt }
+          ],
+          max_tokens: 2000,
+          temperature: 0.7,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      generatedText = data.choices[0].message.content;
+      tokensUsed = data.usage?.total_tokens || 0;
+
+    } else if (botConfig.apiEndpoint.includes('replicate.com')) {
+      // Replicate API for image generation
+      const response = await fetch(botConfig.apiEndpoint, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Token ${botConfig.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          version: 'stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b',
+          input: {
+            prompt: prompt,
+            negative_prompt: 'blurry, bad quality',
+            width: 1024,
+            height: 1024,
+            num_inference_steps: 25
+          }
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Replicate API error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      generatedText = `Image generation started. Prediction ID: ${data.id}. This will generate an image based on your prompt: "${prompt}". Please check back in a few moments for the result.`;
+      tokensUsed = 50; // Estimate for image generation
+
+    } else if (botConfig.apiEndpoint.includes('pexels.com')) {
+      // Pexels API for video search (not generation, but search)
+      const response = await fetch(`${botConfig.apiEndpoint}?query=${encodeURIComponent(prompt)}&per_page=5`, {
+        headers: {
+          'Authorization': botConfig.apiKey,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Pexels API error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      const videos = data.videos || [];
+      if (videos.length > 0) {
+        const videoList = videos.map((video: any, index: number) => 
+          `${index + 1}. ${video.url} (Duration: ${video.duration}s)`
+        ).join('\n');
+        generatedText = `Found ${videos.length} videos related to "${prompt}":\n\n${videoList}`;
+      } else {
+        generatedText = `No videos found for "${prompt}". Try a different search term.`;
+      }
+      tokensUsed = 25;
+
+    } else if (botConfig.apiEndpoint.includes('elevenlabs.io')) {
+      // ElevenLabs API for text-to-speech
+      generatedText = `Voice generation would be processed for: "${prompt}". This feature generates audio from text using ElevenLabs. The audio file would be available for download once processed.`;
+      tokensUsed = 30;
+
+    } else {
+      // Fallback to default text response
+      generatedText = `${botConfig.prompt}\n\nBased on your request: "${prompt}"\n\nThis bot would normally process your request using specialized AI capabilities. The response would be tailored to the specific function of this bot.`;
+      tokensUsed = 50;
     }
-
-    const data = await response.json();
-    const generatedText = data.choices[0].message.content;
-    const tokensUsed = data.usage?.total_tokens || 0;
 
     // Log usage to database
     const { error: logError } = await supabase
