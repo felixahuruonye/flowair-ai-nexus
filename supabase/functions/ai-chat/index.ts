@@ -233,11 +233,14 @@ serve(async (req) => {
     const isFreeTier = !profileData || profileData.subscription_tier === 'free';
     const usageCount = usageData?.length || 0;
 
-    // Check if user has exceeded free tier limit
-    if (isFreeTier && usageCount >= 5) {
+    // Get user's current credits
+    const userCredits = profileData?.credits_remaining || 0;
+    
+    // Check if user has exceeded their credit limit
+    if (userCredits <= 0) {
       return new Response(
         JSON.stringify({ 
-          error: 'Usage limit exceeded. Please upgrade to continue using AI bots.',
+          error: 'No credits remaining. Please upgrade to continue using AI bots.',
           limitExceeded: true 
         }),
         {
@@ -365,13 +368,13 @@ serve(async (req) => {
       if (!response.ok) {
         const errorText = await response.text();
         console.error(`ElevenLabs API error: ${response.status} ${response.statusText}`, errorText);
-        generatedText = `Voice generation initiated for: "${prompt}". Audio processing in progress. This feature converts text to natural-sounding speech.`;
+        throw new Error(`ElevenLabs API error: ${response.status} ${response.statusText}`);
       } else {
         const audioBuffer = await response.arrayBuffer();
         const base64Audio = btoa(String.fromCharCode(...new Uint8Array(audioBuffer)));
-        generatedText = `Voice generated successfully for: "${prompt}". Audio data: data:audio/mpeg;base64,${base64Audio.substring(0, 100)}... (truncated for display)`;
+        generatedText = `AUDIO_RESPONSE:${base64Audio}`;
       }
-      tokensUsed = 30;
+      tokensUsed = 1;
 
     } else {
       // Fallback to default text response
@@ -380,14 +383,23 @@ serve(async (req) => {
       tokensUsed = 50;
     }
 
-    // Log usage to database
+    // Deduct credits and log usage to database
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ credits_remaining: userCredits - 1 })
+      .eq('user_id', userId);
+
+    if (updateError) {
+      console.error('Failed to update credits:', updateError);
+    }
+
     const { error: logError } = await supabase
       .from('user_usage')
       .insert({
         user_id: userId,
         bot_type: botType,
         prompt_text: prompt,
-        response_text: generatedText,
+        response_text: generatedText.includes('AUDIO_RESPONSE:') ? 'Audio generated' : generatedText,
         tokens_used: tokensUsed,
       });
 
@@ -399,8 +411,8 @@ serve(async (req) => {
       JSON.stringify({ 
         generatedText,
         tokensUsed,
-        usageCount: usageCount + 1,
-        isFreeTier
+        creditsRemaining: userCredits - 1,
+        isAudio: generatedText.includes('AUDIO_RESPONSE:')
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

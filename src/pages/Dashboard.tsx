@@ -11,7 +11,7 @@ import {
   Send, Bot, User, Sparkles, Search, Mail, FileText, FileCheck, MessageCircle,
   Code, Briefcase, Languages, Zap, TrendingUp, Award, GraduationCap, Package,
   Camera, Video, Hexagon, Music, Image, Mic, MessageSquare, ShoppingCart,
-  Target, Film, Hash, Instagram, Copy, Download, RefreshCw, Volume2
+  Target, Film, Hash, Instagram, Copy, Download, RefreshCw, Volume2, VolumeX
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -28,6 +28,7 @@ interface Message {
   content: string;
   sender: 'user' | 'bot';
   timestamp: Date;
+  audioData?: string;
 }
 
 const iconMap: Record<string, any> = {
@@ -45,13 +46,15 @@ const Dashboard = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [usageCount, setUsageCount] = useState(0);
-  const [usageLimit, setUsageLimit] = useState(5);
+  const [creditsRemaining, setCreditsRemaining] = useState(0);
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
   useEffect(() => {
     fetchBots();
-    fetchUsageCount();
-  }, []);
+    if (user) {
+      fetchCreditsData();
+    }
+  }, [user]);
 
   const fetchBots = async () => {
     const { data, error } = await supabase
@@ -70,21 +73,76 @@ const Dashboard = () => {
     }
   };
 
-  const fetchUsageCount = async () => {
-    if (!user) return;
+  const fetchCreditsData = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('credits_remaining')
+        .eq('user_id', user?.id)
+        .single();
+
+      if (error) throw error;
+      setCreditsRemaining(data?.credits_remaining || 0);
+    } catch (error) {
+      console.error('Error fetching credits data:', error);
+    }
+  };
+
+  const speakText = (text: string) => {
+    if (text.includes('🎵 Audio generated')) return; // Don't read audio messages
     
-    const currentMonth = new Date();
-    currentMonth.setDate(1);
-    currentMonth.setHours(0, 0, 0, 0);
-    
-    const { data, error } = await supabase
-      .from('user_usage')
-      .select('*')
-      .eq('user_id', user.id)
-      .gte('created_at', currentMonth.toISOString());
-    
-    if (!error && data) {
-      setUsageCount(data.length);
+    if ('speechSynthesis' in window) {
+      // Stop any current speech
+      window.speechSynthesis.cancel();
+      
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.9;
+      utterance.pitch = 1;
+      utterance.volume = 0.8;
+      
+      utterance.onstart = () => setIsSpeaking(true);
+      utterance.onend = () => setIsSpeaking(false);
+      
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  const stopSpeaking = () => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+    }
+  };
+
+  const downloadAudio = (base64Audio: string, fileName: string) => {
+    try {
+      const byteCharacters = atob(base64Audio);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'audio/mpeg' });
+      
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName || 'voiceover.mp3';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Success",
+        description: "Audio file downloaded successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to download audio file",
+        variant: "destructive",
+      });
     }
   };
 
@@ -96,12 +154,16 @@ const Dashboard = () => {
 
   const selectBot = (bot: BotType) => {
     setSelectedBot(bot);
+    const welcomeMessage = `Hi! I'm your ${bot.name}. ${bot.description}. How can I help you today?`;
     setMessages([{
       id: '1',
-      content: `Hi! I'm your ${bot.name}. ${bot.description}. How can I help you today?`,
+      content: welcomeMessage,
       sender: 'bot',
       timestamp: new Date()
     }]);
+    
+    // Read welcome message
+    speakText(welcomeMessage);
   };
 
   const sendMessage = async () => {
@@ -115,13 +177,14 @@ const Dashboard = () => {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = inputMessage;
     setInputMessage('');
     setIsLoading(true);
 
     try {
       const response = await supabase.functions.invoke('ai-chat', {
         body: {
-          prompt: inputMessage,
+          prompt: currentInput,
           botType: selectedBot.name,
           userId: user.id
         }
@@ -133,22 +196,39 @@ const Dashboard = () => {
 
       if (response.data.limitExceeded) {
         toast({
-          title: "Usage Limit Reached",
-          description: "You've reached your free tier limit. Upgrade to continue using AI bots.",
+          title: "Credit Limit Reached",
+          description: "You've run out of credits. Please upgrade to continue using AI bots.",
           variant: "destructive",
         });
         return;
       }
 
+      const { generatedText, creditsRemaining: newCredits, isAudio } = response.data;
+      
+      setCreditsRemaining(newCredits);
+      
+      let content = generatedText;
+      let audioData = undefined;
+      
+      if (isAudio && generatedText.includes('AUDIO_RESPONSE:')) {
+        audioData = generatedText.replace('AUDIO_RESPONSE:', '');
+        content = `🎵 Audio generated for: "${currentInput}"`;
+      }
+      
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: response.data.generatedText,
+        content,
         sender: 'bot',
-        timestamp: new Date()
+        timestamp: new Date(),
+        audioData
       };
 
       setMessages(prev => [...prev, botMessage]);
-      setUsageCount(response.data.usageCount);
+      
+      // Read out the bot response if it's text
+      if (!isAudio) {
+        speakText(content);
+      }
     } catch (error: any) {
       toast({
         title: "Error",
@@ -199,7 +279,7 @@ const Dashboard = () => {
                 <span className="text-2xl font-bold text-gradient">FlowAIr Dashboard</span>
               </div>
               <div className="flex items-center space-x-4">
-                <Badge variant="outline">{usageCount}/{usageLimit} Free Tasks</Badge>
+                <Badge variant="outline">{creditsRemaining} Credits</Badge>
                 <span className="text-sm text-muted-foreground">Welcome, {user?.email}</span>
               </div>
             </div>
@@ -297,7 +377,13 @@ const Dashboard = () => {
               <span className="text-2xl font-bold text-gradient">{selectedBot.name}</span>
             </div>
             <div className="flex items-center space-x-4">
-              <Badge variant="outline">{usageCount}/{usageLimit} Free Tasks</Badge>
+              <Badge variant="outline">{creditsRemaining} Credits</Badge>
+              {isSpeaking && (
+                <Button variant="outline" size="sm" onClick={stopSpeaking}>
+                  <VolumeX className="h-4 w-4 mr-1" />
+                  Stop
+                </Button>
+              )}
               <span className="text-sm text-muted-foreground">Welcome, {user?.email}</span>
             </div>
           </div>
@@ -319,12 +405,12 @@ const Dashboard = () => {
                   <Badge variant="secondary">{selectedBot.category}</Badge>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Usage</span>
-                  <span className="text-sm font-medium">{usageCount}/{usageLimit}</span>
+                  <span className="text-sm text-muted-foreground">Credits</span>
+                  <span className="text-sm font-medium">{creditsRemaining}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">Plan</span>
-                  <span className="text-sm font-medium">Free</span>
+                  <span className="text-sm font-medium">Trial</span>
                 </div>
               </CardContent>
             </Card>
@@ -395,9 +481,23 @@ const Dashboard = () => {
                                 <Button variant="ghost" size="sm" onClick={() => copyToClipboard(message.content)}>
                                   <Copy className="h-3 w-3" />
                                 </Button>
-                                <Button variant="ghost" size="sm">
-                                  <Volume2 className="h-3 w-3" />
-                                </Button>
+                                {message.audioData ? (
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    onClick={() => downloadAudio(message.audioData!, `voiceover-${Date.now()}.mp3`)}
+                                  >
+                                    <Download className="h-3 w-3" />
+                                  </Button>
+                                ) : (
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    onClick={() => speakText(message.content)}
+                                  >
+                                    <Volume2 className="h-3 w-3" />
+                                  </Button>
+                                )}
                               </div>
                             )}
                           </div>
@@ -444,7 +544,7 @@ const Dashboard = () => {
                   />
                   <Button 
                     onClick={sendMessage}
-                    disabled={isLoading || !inputMessage.trim() || (usageCount >= usageLimit)}
+                    disabled={isLoading || !inputMessage.trim() || creditsRemaining <= 0}
                     size="icon"
                     className="self-end"
                   >
@@ -452,10 +552,10 @@ const Dashboard = () => {
                   </Button>
                 </div>
                 
-                {usageCount >= usageLimit && (
+                {creditsRemaining <= 0 && (
                   <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
                     <p className="text-sm text-destructive">
-                      You've reached your free tier limit. Upgrade to continue using AI bots.
+                      You've run out of credits. Please upgrade to continue using AI bots.
                     </p>
                   </div>
                 )}
