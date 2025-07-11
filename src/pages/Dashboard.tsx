@@ -74,17 +74,25 @@ const Dashboard = () => {
   };
 
   const fetchCreditsData = async () => {
+    if (!user?.id) return;
+    
     try {
       const { data, error } = await supabase
         .from('profiles')
         .select('credits_remaining')
-        .eq('user_id', user?.id)
-        .single();
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error:', error);
+        setCreditsRemaining(0);
+        return;
+      }
+      
       setCreditsRemaining(data?.credits_remaining || 0);
     } catch (error) {
       console.error('Error fetching credits data:', error);
+      setCreditsRemaining(0);
     }
   };
 

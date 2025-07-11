@@ -223,12 +223,20 @@ serve(async (req) => {
       throw new Error('Failed to check usage limit');
     }
 
-    // Get user's subscription plan
-    const { data: profileData } = await supabase
+    // Get user's subscription plan and credits
+    const { data: profileData, error: profileError } = await supabase
       .from('profiles')
-      .select('subscription_tier')
+      .select('subscription_tier, credits_remaining')
       .eq('user_id', userId)
-      .single();
+      .maybeSingle();
+
+    if (profileError) {
+      console.error('Profile fetch error:', profileError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to fetch user profile' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     const isFreeTier = !profileData || profileData.subscription_tier === 'free';
     const usageCount = usageData?.length || 0;
