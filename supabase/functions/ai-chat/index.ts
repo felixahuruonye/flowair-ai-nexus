@@ -300,17 +300,15 @@ serve(async (req) => {
       
       // Different models for different bots
       if (botType === 'AI Video Generator') {
-        version = 'stability-ai/stable-video-diffusion:3f0457e4619daac51203dedb1a4d2e5a2b1e0b2dfe34c2b2ba19146bcd82f1a0';
+        version = 'lightricks/ltx-video:a4a8dd8c5e78226a91c240bb401946cea4b5688ec1b9ab1c47faec8a48d06b98';
         input = {
-          cond_aug: 0.02,
-          decoding_t: 7,
-          video_length: "14_frames_with_svd",
-          sizing_strategy: "maintain_aspect_ratio",
-          motion_bucket_id: 127,
-          fps: 6,
-          image: `data:image/png;base64,${btoa('placeholder for video input')}`
+          prompt: prompt,
+          width: 768,
+          height: 512,
+          num_frames: 49,
+          num_inference_steps: 30
         };
-      } else if (botType === 'Logo Generator' || botType === 'Flyer Generator') {
+      } else if (botType === 'Logo Generator' || botType === 'Flyer Generator' || botType === 'Thumbnail Generator') {
         version = 'black-forest-labs/flux-schnell:bf2f2e683d0a75a2e04b8a2d7e7d2f88a5d8a9f3c4b5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t1u2v3w4x5y6z7';
         input = {
           prompt: prompt,
@@ -321,6 +319,16 @@ serve(async (req) => {
           output_format: "webp",
           output_quality: 80,
           num_inference_steps: 4
+        };
+      } else if (botType === 'Realistic AI Photo Generator') {
+        version = 'stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b';
+        input = {
+          prompt: prompt,
+          negative_prompt: 'blurry, bad quality, distorted',
+          width: 1024,
+          height: 1024,
+          num_inference_steps: 25,
+          guidance_scale: 7.5
         };
       } else {
         // Default image generation
