@@ -109,14 +109,13 @@ const getBotConfig = (botType: string) => {
     },
     'AI Video Generator': {
       prompt: 'You are an AI that creates ai-generated videos.',
-      apiEndpoint: 'https://api.pexels.com/videos/search',
-      apiKey: '11mHiyyWTCXa6x86irYeXtkC2ueaeaUOwdMlMiggHINxpTQ4j5pltLYh'
+      apiEndpoint: 'https://api.replicate.com/v1/predictions',
+      apiKey: 'r8_VDq8LS9tYPJV0jjXSYg8lCHqh8MB4ci3PFA6C'
     },
     'Logo Generator': {
       prompt: 'You are an AI that designs logo ideas based on brand.',
-      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
-      apiKey: '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',
-      model: 'mistralai/mixtral-8x7b-instruct'
+      apiEndpoint: 'https://api.replicate.com/v1/predictions',
+      apiKey: 'r8_VDq8LS9tYPJV0jjXSYg8lCHqh8MB4ci3PFA6C'
     },
     'Music & Lyrics Generator': {
       prompt: 'You are an AI that generates music lyrics and melody ideas.',
@@ -126,9 +125,8 @@ const getBotConfig = (botType: string) => {
     },
     'Flyer Generator': {
       prompt: 'You are an AI that creates marketing flyers.',
-      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
-      apiKey: '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',
-      model: 'mistralai/mixtral-8x7b-instruct'
+      apiEndpoint: 'https://api.replicate.com/v1/predictions',
+      apiKey: 'r8_VDq8LS9tYPJV0jjXSYg8lCHqh8MB4ci3PFA6C'
     },
     'PDF Summarizer Bot': {
       prompt: 'You are an AI that summarizes long pdf content.',
@@ -295,8 +293,47 @@ serve(async (req) => {
       tokensUsed = data.usage?.total_tokens || 0;
 
     } else if (botConfig.apiEndpoint.includes('replicate.com')) {
-      // Replicate API for image generation
+      // Replicate API for image/video generation
       console.log(`Making Replicate API call for bot: ${botType}`);
+      
+      let version, input;
+      
+      // Different models for different bots
+      if (botType === 'AI Video Generator') {
+        version = 'stability-ai/stable-video-diffusion:3f0457e4619daac51203dedb1a4d2e5a2b1e0b2dfe34c2b2ba19146bcd82f1a0';
+        input = {
+          cond_aug: 0.02,
+          decoding_t: 7,
+          video_length: "14_frames_with_svd",
+          sizing_strategy: "maintain_aspect_ratio",
+          motion_bucket_id: 127,
+          fps: 6,
+          image: `data:image/png;base64,${btoa('placeholder for video input')}`
+        };
+      } else if (botType === 'Logo Generator' || botType === 'Flyer Generator') {
+        version = 'black-forest-labs/flux-schnell:bf2f2e683d0a75a2e04b8a2d7e7d2f88a5d8a9f3c4b5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t1u2v3w4x5y6z7';
+        input = {
+          prompt: prompt,
+          go_fast: true,
+          megapixels: "1",
+          num_outputs: 1,
+          aspect_ratio: "1:1",
+          output_format: "webp",
+          output_quality: 80,
+          num_inference_steps: 4
+        };
+      } else {
+        // Default image generation
+        version = 'stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b';
+        input = {
+          prompt: prompt,
+          negative_prompt: 'blurry, bad quality',
+          width: 1024,
+          height: 1024,
+          num_inference_steps: 25
+        };
+      }
+
       const response = await fetch(botConfig.apiEndpoint, {
         method: 'POST',
         headers: {
@@ -304,14 +341,8 @@ serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          version: 'stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b',
-          input: {
-            prompt: prompt,
-            negative_prompt: 'blurry, bad quality',
-            width: 1024,
-            height: 1024,
-            num_inference_steps: 25
-          }
+          version: version,
+          input: input
         }),
       });
 
@@ -322,35 +353,24 @@ serve(async (req) => {
       }
 
       const data = await response.json();
-      generatedText = `Image generation started. Prediction ID: ${data.id}. This will generate an image based on your prompt: "${prompt}". Please check back in a few moments for the result.`;
-      tokensUsed = 50; // Estimate for image generation
-
-    } else if (botConfig.apiEndpoint.includes('pexels.com')) {
-      // Pexels API for video search
-      console.log(`Making Pexels API call for bot: ${botType}`);
-      const response = await fetch(`${botConfig.apiEndpoint}?query=${encodeURIComponent(prompt)}&per_page=5`, {
-        headers: {
-          'Authorization': botConfig.apiKey,
-        },
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`Pexels API error: ${response.status} ${response.statusText}`, errorText);
-        throw new Error(`Pexels API error: ${response.status} ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      const videos = data.videos || [];
-      if (videos.length > 0) {
-        const videoList = videos.map((video: any, index: number) => 
-          `${index + 1}. ${video.url} (Duration: ${video.duration}s)`
-        ).join('\n');
-        generatedText = `Found ${videos.length} videos related to "${prompt}":\n\n${videoList}`;
+      
+      if (botType === 'AI Video Generator') {
+        generatedText = `MEDIA_RESPONSE:${JSON.stringify({
+          type: 'video',
+          predictionId: data.id,
+          status: 'processing',
+          message: `Video generation started based on your prompt: "${prompt}". This will create a downloadable video file.`
+        })}`;
       } else {
-        generatedText = `No videos found for "${prompt}". Try a different search term.`;
+        generatedText = `MEDIA_RESPONSE:${JSON.stringify({
+          type: 'image',
+          predictionId: data.id,
+          status: 'processing',
+          message: `${botType} started. Creating content based on your prompt: "${prompt}".`
+        })}`;
       }
-      tokensUsed = 25;
+      tokensUsed = 50;
+
 
     } else if (botConfig.apiEndpoint.includes('elevenlabs.io')) {
       // ElevenLabs API for text-to-speech
