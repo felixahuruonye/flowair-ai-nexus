@@ -263,7 +263,7 @@ serve(async (req) => {
 
     // Handle different API providers
     if (botConfig.apiEndpoint.includes('openrouter.ai')) {
-      // OpenRouter API call
+      // OpenRouter API call for text-based bots
       console.log(`Making OpenRouter API call for bot: ${botType}`);
       const response = await fetch(botConfig.apiEndpoint, {
         method: 'POST',
