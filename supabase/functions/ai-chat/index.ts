@@ -309,7 +309,7 @@ serve(async (req) => {
           num_inference_steps: 30
         };
       } else if (botType === 'Logo Generator' || botType === 'Flyer Generator' || botType === 'Thumbnail Generator') {
-        version = 'black-forest-labs/flux-schnell:bf2f2e683d0a75a2e04b8a2d7e7d2f88a5d8a9f3c4b5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t1u2v3w4x5y6z7';
+        version = 'black-forest-labs/flux-schnell';
         input = {
           prompt: prompt,
           go_fast: true,
