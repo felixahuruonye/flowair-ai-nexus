@@ -1,8 +1,10 @@
 
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Check, Sparkles, Crown, Zap } from 'lucide-react';
+import PaymentDialog from './PaymentDialog';
 
 const PricingSection = () => {
   const plans = [
@@ -32,7 +34,7 @@ const PricingSection = () => {
       badge: "Most Popular",
       features: [
         "Unlimited AI bot tasks",
-        "Access to all 30+ AI bots",
+        "Access to all 24 AI bots",
         "Priority response time",
         "Email & chat support",
         "Premium templates",
@@ -67,6 +69,14 @@ const PricingSection = () => {
       popular: false
     }
   ];
+
+  const [selectedPlan, setSelectedPlan] = useState<typeof plans[0] | null>(null);
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+
+  const handlePlanSelect = (plan: typeof plans[0]) => {
+    setSelectedPlan(plan);
+    setIsPaymentDialogOpen(true);
+  };
 
   return (
     <section id="pricing" className="py-20 px-4 sm:px-6 lg:px-8">
@@ -141,6 +151,7 @@ const PricingSection = () => {
                       : 'border-2 hover:bg-muted'
                   }`}
                   size="lg"
+                  onClick={() => handlePlanSelect(plan)}
                 >
                   {plan.buttonText}
                 </Button>
@@ -176,6 +187,18 @@ const PricingSection = () => {
             </p>
           </div>
         </div>
+
+        {/* Payment Dialog */}
+        {selectedPlan && (
+          <PaymentDialog
+            isOpen={isPaymentDialogOpen}
+            onClose={() => {
+              setIsPaymentDialogOpen(false);
+              setSelectedPlan(null);
+            }}
+            plan={selectedPlan}
+          />
+        )}
       </div>
     </section>
   );

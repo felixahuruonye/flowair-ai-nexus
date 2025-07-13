@@ -24,7 +24,7 @@ const HeroSection = () => {
         {/* Announcement Badge */}
         <Badge variant="secondary" className="mb-6 px-4 py-2 text-sm font-medium">
           <Sparkles className="w-4 h-4 mr-2" />
-          30+ AI Job Bots Available Now
+          24 AI Job Bots Available Now
         </Badge>
 
         {/* Main Headline */}
@@ -36,7 +36,7 @@ const HeroSection = () => {
 
         {/* Subheadline */}
         <p className="text-xl sm:text-2xl text-muted-foreground mb-8 max-w-4xl mx-auto leading-relaxed">
-          Access 30+ specialized AI job bots from one powerful dashboard. 
+          Access 24 specialized AI job bots from one powerful dashboard. 
           Automate emails, generate content, build code, manage business operations, 
           and scale your productivity globally.
         </p>
@@ -49,7 +49,7 @@ const HeroSection = () => {
           </div>
           <div className="flex items-center gap-2">
             <Bot className="w-4 h-4" />
-            <span>30+ AI Job Bots</span>
+            <span>24 AI Job Bots</span>
           </div>
           <div className="flex items-center gap-2">
             <Globe className="w-4 h-4" />
@@ -87,7 +87,7 @@ const HeroSection = () => {
             <div className="gradient-primary p-3 rounded-full w-fit mx-auto mb-4">
               <Bot className="h-6 w-6 text-white" />
             </div>
-            <h3 className="font-semibold mb-2">30+ AI Job Bots</h3>
+            <h3 className="font-semibold mb-2">24 AI Job Bots</h3>
             <p className="text-sm text-muted-foreground">From email generation to code creation, all in one dashboard</p>
           </div>
           
