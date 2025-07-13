@@ -8,10 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { 
-  Send, Bot, User, Sparkles, Search, Mail, FileText, FileCheck, MessageCircle,
-  Code, Briefcase, Languages, Zap, TrendingUp, Award, GraduationCap, Package,
-  Camera, Video, Hexagon, Music, Image, Mic, MessageSquare, ShoppingCart,
-  Target, Film, Hash, Instagram, Copy, Download, RefreshCw, Volume2, VolumeX
+  Send, Bot, User, Sparkles, Search, FileText, Code, Briefcase,
+  TrendingUp, Award, GraduationCap, Target, Copy, Download, RefreshCw, Volume2, VolumeX
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -32,9 +30,7 @@ interface Message {
 }
 
 const iconMap: Record<string, any> = {
-  Mail, FileText, FileCheck, MessageCircle, Search, Code, Briefcase, Languages, Zap,
-  TrendingUp, Award, GraduationCap, Sparkles, Package, User, Camera, Video, Hexagon,
-  Music, Image, Mic, MessageSquare, ShoppingCart, Instagram, Target, Film, Hash, Bot
+  FileText, Code, TrendingUp, Briefcase, User, Target, GraduationCap, Award, Bot
 };
 
 const Dashboard = () => {

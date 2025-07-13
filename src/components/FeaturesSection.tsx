@@ -2,68 +2,34 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
-  Mail,
   FileText,
-  MessageSquare,
-  Search,
   Code,
-  Calendar,
-  Languages,
   Zap,
   TrendingUp,
-  BookOpen,
-  Building,
   Briefcase,
   User,
-  Image,
-  Video,
-  Palette,
-  Music,
-  FileImage,
-  FileCheck,
-  Mic,
-  MessageCircle,
-  ShoppingCart,
-  Instagram,
   PenTool,
-  Hash,
+  FileCheck,
+  Target,
+  GraduationCap,
+  Award,
   Bot
 } from 'lucide-react';
 
 const aiJobBots = [
-  { icon: Mail, name: "Email Generator", description: "Personal, marketing, follow-up emails", category: "Communication", color: "bg-blue-500" },
-  { icon: FileText, name: "Blog & Article Writer", description: "SEO-optimized content creation", category: "Content", color: "bg-green-500" },
-  { icon: FileCheck, name: "Proposal & Legal Creator", description: "Professional documents & contracts", category: "Business", color: "bg-purple-500" },
-  { icon: MessageSquare, name: "Live Customer Support", description: "Auto chat support agent", category: "Support", color: "bg-orange-500" },
-  { icon: Search, name: "Product & Market Research", description: "Google Search AI powered", category: "Research", color: "bg-indigo-500" },
-  { icon: Code, name: "Code Generator", description: "Like Lovable.dev for development", category: "Development", color: "bg-gray-800" },
-  { icon: Calendar, name: "Business Operations", description: "Task lists, Calendar, CRM Lite", category: "Productivity", color: "bg-red-500" },
-  { icon: Languages, name: "Language Translator", description: "Multi-language translation", category: "Communication", color: "bg-teal-500" },
-  { icon: Zap, name: "Automation Bot", description: "Zapier-like workflow connections", category: "Automation", color: "bg-yellow-500" },
-  { icon: TrendingUp, name: "Sales Funnel Builder", description: "Complete funnel creation", category: "Marketing", color: "bg-pink-500" },
-  { icon: BookOpen, name: "Grant/Proposal Writer", description: "Professional grant applications", category: "Business", color: "bg-cyan-500" },
-  { icon: User, name: "AI Tutor Bot", description: "Personalized learning assistant", category: "Education", color: "bg-lime-500" },
-  { icon: Building, name: "Brand Builder Bot", description: "Complete brand identity creation", category: "Branding", color: "bg-violet-500" },
-  { icon: ShoppingCart, name: "Dropshipping Assistant", description: "E-commerce automation", category: "E-commerce", color: "bg-emerald-500" },
-  { icon: Briefcase, name: "Resume & Cover Letter", description: "Professional job applications", category: "Career", color: "bg-slate-500" },
-  { icon: Image, name: "Realistic AI Photo Generator", description: "High-quality image creation", category: "Media", color: "bg-rose-500" },
-  { icon: Video, name: "AI Video Generator", description: "Professional video content", category: "Media", color: "bg-blue-600" },
-  { icon: Palette, name: "Logo Generator", description: "Professional brand logos", category: "Design", color: "bg-orange-600" },
-  { icon: Music, name: "Music & Lyrics Generator", description: "Original music composition", category: "Creative", color: "bg-purple-600" },
-  { icon: FileImage, name: "Flyer Generator", description: "Marketing materials design", category: "Design", color: "bg-green-600" },
-  { icon: FileCheck, name: "PDF Summarizer", description: "Document analysis & summary", category: "Productivity", color: "bg-indigo-600" },
-  { icon: Mic, name: "Voice Over Generator", description: "Text to speech for podcasts", category: "Audio", color: "bg-red-600" },
-  { icon: MessageCircle, name: "Comment Responder", description: "Social media engagement", category: "Social", color: "bg-teal-600" },
-  { icon: ShoppingCart, name: "E-commerce Product Writer", description: "Product descriptions & SEO", category: "E-commerce", color: "bg-yellow-600" },
-  { icon: Instagram, name: "Instagram Caption Generator", description: "Engaging social media content", category: "Social", color: "bg-pink-600" },
-  { icon: PenTool, name: "Ad Copy Generator", description: "High-converting advertisements", category: "Marketing", color: "bg-cyan-600" },
-  { icon: FileText, name: "Script Generator", description: "Video & presentation scripts", category: "Content", color: "bg-lime-600" },
-  { icon: Hash, name: "Tags/SEO Generator", description: "Optimization keywords & tags", category: "SEO", color: "bg-violet-600" },
-  { icon: Image, name: "Thumbnail Generator", description: "Eye-catching video thumbnails", category: "Design", color: "bg-emerald-600" },
-  { icon: Bot, name: "Chat Bot Code Generator", description: "Custom chatbot development", category: "Development", color: "bg-slate-600" }
+  { icon: FileText, name: "Technical Writer", description: "Expert technical documentation and writing", category: "Content", color: "bg-blue-500" },
+  { icon: Briefcase, name: "Business Consultant", description: "Strategic business advice and planning", category: "Business", color: "bg-green-500" },
+  { icon: PenTool, name: "Creative Writer", description: "Engaging creative content and storytelling", category: "Content", color: "bg-purple-500" },
+  { icon: TrendingUp, name: "Data Analyst", description: "Data analysis and insights generation", category: "Analytics", color: "bg-orange-500" },
+  { icon: Target, name: "Marketing Specialist", description: "Strategic marketing and campaign planning", category: "Marketing", color: "bg-indigo-500" },
+  { icon: FileCheck, name: "Legal Assistant", description: "Legal document review and guidance", category: "Legal", color: "bg-gray-800" },
+  { icon: GraduationCap, name: "Academic Researcher", description: "Research assistance and academic writing", category: "Research", color: "bg-red-500" },
+  { icon: Code, name: "Software Developer", description: "Code generation and development assistance", category: "Development", color: "bg-teal-500" },
+  { icon: Award, name: "Financial Advisor", description: "Financial planning and investment guidance", category: "Finance", color: "bg-yellow-500" },
+  { icon: User, name: "Healthcare Assistant", description: "Medical information and health guidance", category: "Healthcare", color: "bg-pink-500" }
 ];
 
-const categories = ["All", "Communication", "Content", "Business", "Development", "Marketing", "Design", "Media"];
+const categories = ["All", "Content", "Business", "Analytics", "Marketing", "Legal", "Research", "Development", "Finance", "Healthcare"];
 
 const FeaturesSection = () => {
   return (
@@ -73,15 +39,15 @@ const FeaturesSection = () => {
         <div className="text-center mb-16">
           <Badge variant="secondary" className="mb-6 px-4 py-2">
             <Bot className="w-4 h-4 mr-2" />
-            30+ AI Job Bots
+            10 Specialized AI Bots
           </Badge>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">
             Your Complete AI
             <span className="text-gradient"> Workforce</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            From content creation to business automation, our specialized AI bots handle every aspect 
-            of your workflow. Each bot is designed for specific tasks and delivers professional results instantly.
+            From technical writing to business consulting, our specialized AI bots handle professional tasks 
+            with expertise. Each bot is trained for specific domains and delivers high-quality results instantly.
           </p>
         </div>
 
