@@ -102,42 +102,17 @@ const getBotConfig = (botType: string) => {
       apiKey: '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',
       model: 'mistralai/mixtral-8x7b-instruct'
     },
-    'Realistic AI Photo Generator': {
-      prompt: 'You are an AI that generates realistic photos.',
-      apiEndpoint: 'https://api.replicate.com/v1/predictions',
-      apiKey: 'r8_VDq8LS9tYPJV0jjXSYg8lCHqh8MB4ci3PFA6C'
-    },
-    'AI Video Generator': {
-      prompt: 'You are an AI that creates ai-generated videos.',
-      apiEndpoint: 'https://api.replicate.com/v1/predictions',
-      apiKey: 'r8_VDq8LS9tYPJV0jjXSYg8lCHqh8MB4ci3PFA6C'
-    },
-    'Logo Generator': {
-      prompt: 'You are an AI that designs logo ideas based on brand.',
-      apiEndpoint: 'https://api.replicate.com/v1/predictions',
-      apiKey: 'r8_VDq8LS9tYPJV0jjXSYg8lCHqh8MB4ci3PFA6C'
-    },
     'Music & Lyrics Generator': {
       prompt: 'You are an AI that generates music lyrics and melody ideas.',
       apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
       apiKey: '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',
       model: 'mistralai/mixtral-8x7b-instruct'
     },
-    'Flyer Generator': {
-      prompt: 'You are an AI that creates marketing flyers.',
-      apiEndpoint: 'https://api.replicate.com/v1/predictions',
-      apiKey: 'r8_VDq8LS9tYPJV0jjXSYg8lCHqh8MB4ci3PFA6C'
-    },
-    'PDF Summarizer Bot': {
+    'PDF Summarizer': {
       prompt: 'You are an AI that summarizes long pdf content.',
       apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
       apiKey: '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',
       model: 'mistralai/mixtral-8x7b-instruct'
-    },
-    'Voice Over from Text (Procast Bot)': {
-      prompt: 'You are an AI that generates voiceover from text.',
-      apiEndpoint: 'https://api.elevenlabs.io/v1/text-to-speech',
-      apiKey: 'sk_6c7fe06d5fe13818315e8d032be33050922b59de497a1d53'
     },
     'Comment Responder': {
       prompt: 'You are an AI that replies to social media comments.',
@@ -175,13 +150,14 @@ const getBotConfig = (botType: string) => {
       apiKey: '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',
       model: 'mistralai/mixtral-8x7b-instruct'
     },
-    'Thumbnail Generator': {
-      prompt: 'You are an AI that creates youtube-style thumbnails.',
-      apiEndpoint: 'https://api.replicate.com/v1/predictions',
-      apiKey: 'r8_VDq8LS9tYPJV0jjXSYg8lCHqh8MB4ci3PFA6C'
-    },
     'Chat Bot Code Generator': {
       prompt: 'You are an AI that generates chatbot logic/code.',
+      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
+      apiKey: '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',
+      model: 'mistralai/mixtral-8x7b-instruct'
+    },
+    'Automation Bot': {
+      prompt: 'You are an AI that helps connect workflows like Zapier.',
       apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
       apiKey: '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',
       model: 'mistralai/mixtral-8x7b-instruct'
@@ -204,6 +180,12 @@ serve(async (req) => {
   try {
     const { prompt, botType, userId }: ChatRequest = await req.json();
 
+    console.log('Received request:', { prompt, botType, userId });
+
+    if (!prompt || !botType) {
+      throw new Error('Prompt and botType are required');
+    }
+
     // Get bot configuration
     const botConfig = getBotConfig(botType);
 
@@ -218,6 +200,7 @@ serve(async (req) => {
       .gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString());
 
     if (usageError) {
+      console.error('Usage check error:', usageError);
       throw new Error('Failed to check usage limit');
     }
 
@@ -236,10 +219,6 @@ serve(async (req) => {
       );
     }
 
-    const isFreeTier = !profileData || profileData.subscription_tier === 'free';
-    const usageCount = usageData?.length || 0;
-
-    // Get user's current credits
     const userCredits = profileData?.credits_remaining || 0;
     
     // Check if user has exceeded their credit limit
@@ -259,165 +238,36 @@ serve(async (req) => {
     let generatedText = '';
     let tokensUsed = 0;
 
-    // Handle different API providers
-    if (botConfig.apiEndpoint.includes('openrouter.ai')) {
-      // OpenRouter API call for text-based bots
-      console.log(`Making OpenRouter API call for bot: ${botType}`);
-      const response = await fetch(botConfig.apiEndpoint, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${botConfig.apiKey}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://lovableproject.com',
-          'X-Title': 'FlowAIr Bot'
-        },
-        body: JSON.stringify({
-          model: botConfig.model,
-          messages: [
-            { role: 'system', content: botConfig.prompt },
-            { role: 'user', content: prompt }
-          ],
-          max_tokens: 2000,
-          temperature: 0.7,
-        }),
-      });
+    // All bots now use OpenRouter for text generation
+    console.log(`Making OpenRouter API call for bot: ${botType}`);
+    const response = await fetch(botConfig.apiEndpoint, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${botConfig.apiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://lovableproject.com',
+        'X-Title': 'FlowAIr Bot'
+      },
+      body: JSON.stringify({
+        model: botConfig.model,
+        messages: [
+          { role: 'system', content: botConfig.prompt },
+          { role: 'user', content: prompt }
+        ],
+        max_tokens: 2000,
+        temperature: 0.7,
+      }),
+    });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`OpenRouter API error: ${response.status} ${response.statusText}`, errorText);
-        throw new Error(`API error: ${response.status} ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      generatedText = data.choices?.[0]?.message?.content || 'No response generated';
-      tokensUsed = data.usage?.total_tokens || 0;
-
-    } else if (botConfig.apiEndpoint.includes('replicate.com')) {
-      // Replicate API for image/video generation
-      console.log(`Making Replicate API call for bot: ${botType}`);
-      
-      let version, input;
-      
-      // Different models for different bots
-      if (botType === 'AI Video Generator') {
-        version = 'lightricks/ltx-video:a4a8dd8c5e78226a91c240bb401946cea4b5688ec1b9ab1c47faec8a48d06b98';
-        input = {
-          prompt: prompt,
-          width: 768,
-          height: 512,
-          num_frames: 49,
-          num_inference_steps: 30
-        };
-      } else if (botType === 'Logo Generator' || botType === 'Flyer Generator' || botType === 'Thumbnail Generator') {
-        version = 'black-forest-labs/flux-schnell';
-        input = {
-          prompt: prompt,
-          go_fast: true,
-          megapixels: "1",
-          num_outputs: 1,
-          aspect_ratio: "1:1",
-          output_format: "webp",
-          output_quality: 80,
-          num_inference_steps: 4
-        };
-      } else if (botType === 'Realistic AI Photo Generator') {
-        version = 'stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b';
-        input = {
-          prompt: prompt,
-          negative_prompt: 'blurry, bad quality, distorted',
-          width: 1024,
-          height: 1024,
-          num_inference_steps: 25,
-          guidance_scale: 7.5
-        };
-      } else {
-        // Default image generation
-        version = 'stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b';
-        input = {
-          prompt: prompt,
-          negative_prompt: 'blurry, bad quality',
-          width: 1024,
-          height: 1024,
-          num_inference_steps: 25
-        };
-      }
-
-      const response = await fetch(botConfig.apiEndpoint, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Token ${botConfig.apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          version: version,
-          input: input
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`Replicate API error: ${response.status} ${response.statusText}`, errorText);
-        throw new Error(`Replicate API error: ${response.status} ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      
-      if (botType === 'AI Video Generator') {
-        generatedText = `MEDIA_RESPONSE:${JSON.stringify({
-          type: 'video',
-          predictionId: data.id,
-          status: 'processing',
-          message: `Video generation started based on your prompt: "${prompt}". This will create a downloadable video file.`
-        })}`;
-      } else {
-        generatedText = `MEDIA_RESPONSE:${JSON.stringify({
-          type: 'image',
-          predictionId: data.id,
-          status: 'processing',
-          message: `${botType} started. Creating content based on your prompt: "${prompt}".`
-        })}`;
-      }
-      tokensUsed = 50;
-
-
-    } else if (botConfig.apiEndpoint.includes('elevenlabs.io')) {
-      // ElevenLabs API for text-to-speech
-      console.log(`Making ElevenLabs API call for bot: ${botType}`);
-      const voiceId = 'EXAVITQu4vr4xnSDxMaL'; // Sarah voice
-      const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
-        method: 'POST',
-        headers: {
-          'Accept': 'audio/mpeg',
-          'Content-Type': 'application/json',
-          'xi-api-key': botConfig.apiKey,
-        },
-        body: JSON.stringify({
-          text: prompt,
-          model_id: 'eleven_monolingual_v1',
-          voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.5
-          }
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`ElevenLabs API error: ${response.status} ${response.statusText}`, errorText);
-        throw new Error(`ElevenLabs API error: ${response.status} ${response.statusText}`);
-      } else {
-        const audioBuffer = await response.arrayBuffer();
-        const base64Audio = btoa(String.fromCharCode(...new Uint8Array(audioBuffer)));
-        generatedText = `AUDIO_RESPONSE:${base64Audio}`;
-      }
-      tokensUsed = 1;
-
-    } else {
-      // Fallback to default text response
-      console.log(`Using fallback response for bot: ${botType}`);
-      generatedText = `${botConfig.prompt}\n\nBased on your request: "${prompt}"\n\nI'm processing your request using specialized AI capabilities. Here's a response tailored to the ${botType} function.`;
-      tokensUsed = 50;
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`OpenRouter API error: ${response.status} ${response.statusText}`, errorText);
+      throw new Error(`API error: ${response.status} ${response.statusText}`);
     }
+
+    const data = await response.json();
+    generatedText = data.choices?.[0]?.message?.content || 'No response generated';
+    tokensUsed = data.usage?.total_tokens || 0;
 
     // Deduct credits and log usage to database
     const { error: updateError } = await supabase
@@ -426,36 +276,39 @@ serve(async (req) => {
       .eq('user_id', userId);
 
     if (updateError) {
-      console.error('Failed to update credits:', updateError);
+      console.error('Error updating credits:', updateError);
     }
 
+    // Log usage to database
     const { error: logError } = await supabase
       .from('user_usage')
       .insert({
         user_id: userId,
         bot_type: botType,
         prompt_text: prompt,
-        response_text: generatedText.includes('AUDIO_RESPONSE:') ? 'Audio generated' : generatedText,
+        response_text: generatedText,
         tokens_used: tokensUsed,
       });
 
     if (logError) {
-      console.error('Failed to log usage:', logError);
+      console.error('Error logging usage:', logError);
     }
+
+    console.log('Generated response successfully');
 
     return new Response(
       JSON.stringify({ 
-        generatedText,
-        tokensUsed,
-        creditsRemaining: userCredits - 1,
-        isAudio: generatedText.includes('AUDIO_RESPONSE:')
+        response: generatedText,
+        remainingCredits: userCredits - 1
       }),
       {
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );
+
   } catch (error) {
-    console.error('Error in ai-chat function:', error);
+    console.error('Error in chat function:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       {
