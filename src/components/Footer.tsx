@@ -16,8 +16,8 @@ const Footer = () => {
               <span className="text-2xl font-bold text-gradient">FlowAIr</span>
             </div>
             <p className="text-muted-foreground text-sm mb-4 max-w-xs">
-              Your global AI virtual workspace. Access 24 specialized AI job bots 
-              to automate and scale your productivity worldwide.
+              Your global AI virtual workspace. Access 10 specialized text-based AI bots 
+              to enhance your productivity and professional services worldwide.
             </p>
             <div className="flex space-x-3">
               <a href="#" className="p-2 bg-muted rounded-lg hover:bg-primary hover:text-white transition-colors">

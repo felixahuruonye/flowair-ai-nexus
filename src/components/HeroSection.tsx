@@ -24,7 +24,7 @@ const HeroSection = () => {
         {/* Announcement Badge */}
         <Badge variant="secondary" className="mb-6 px-4 py-2 text-sm font-medium">
           <Sparkles className="w-4 h-4 mr-2" />
-          24 AI Job Bots Available Now
+          10 AI Job Bots Available Now
         </Badge>
 
         {/* Main Headline */}
@@ -36,9 +36,9 @@ const HeroSection = () => {
 
         {/* Subheadline */}
         <p className="text-xl sm:text-2xl text-muted-foreground mb-8 max-w-4xl mx-auto leading-relaxed">
-          Access 24 specialized AI job bots from one powerful dashboard. 
-          Automate emails, generate content, build code, manage business operations, 
-          and scale your productivity globally.
+          Access 10 specialized AI text-based bots from one powerful dashboard. 
+          Get expert assistance in writing, analysis, consultation, and professional services
+          to scale your productivity globally.
         </p>
 
         {/* Stats Row */}
@@ -49,7 +49,7 @@ const HeroSection = () => {
           </div>
           <div className="flex items-center gap-2">
             <Bot className="w-4 h-4" />
-            <span>24 AI Job Bots</span>
+            <span>10 AI Text Bots</span>
           </div>
           <div className="flex items-center gap-2">
             <Globe className="w-4 h-4" />
@@ -87,8 +87,8 @@ const HeroSection = () => {
             <div className="gradient-primary p-3 rounded-full w-fit mx-auto mb-4">
               <Bot className="h-6 w-6 text-white" />
             </div>
-            <h3 className="font-semibold mb-2">24 AI Job Bots</h3>
-            <p className="text-sm text-muted-foreground">From email generation to code creation, all in one dashboard</p>
+            <h3 className="font-semibold mb-2">10 AI Text Bots</h3>
+            <p className="text-sm text-muted-foreground">Specialized text-based AI assistants for professional services</p>
           </div>
           
           <div className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl border shadow-sm hover:shadow-md transition-all duration-300">
