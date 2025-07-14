@@ -207,32 +207,23 @@ const Dashboard = () => {
         return;
       }
 
-      const { generatedText, creditsRemaining: newCredits, isAudio } = response.data;
+      const { response: generatedText, remainingCredits: newCredits } = response.data;
       
       setCreditsRemaining(newCredits);
       
       let content = generatedText;
-      let audioData = undefined;
-      
-      if (isAudio && generatedText.includes('AUDIO_RESPONSE:')) {
-        audioData = generatedText.replace('AUDIO_RESPONSE:', '');
-        content = `🎵 Audio generated for: "${currentInput}"`;
-      }
       
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
         content,
         sender: 'bot',
-        timestamp: new Date(),
-        audioData
+        timestamp: new Date()
       };
 
       setMessages(prev => [...prev, botMessage]);
       
-      // Read out the bot response if it's text
-      if (!isAudio) {
-        speakText(content);
-      }
+      // Read out the bot response
+      speakText(content);
     } catch (error: any) {
       toast({
         title: "Error",
