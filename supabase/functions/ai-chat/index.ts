@@ -18,146 +18,62 @@ interface ChatRequest {
 
 const getBotConfig = (botType: string) => {
   const configs: Record<string, { prompt: string; apiEndpoint: string; apiKey: string; model?: string }> = {
-    'Email Generator': {
-      prompt: 'You are an AI that writes personal, marketing, and follow-up emails.',
+    'Technical Writer': {
+      prompt: 'You are an expert technical writer specializing in creating clear, comprehensive documentation, user guides, API documentation, and technical specifications. You excel at breaking down complex technical concepts into understandable content.',
       apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
       apiKey: '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',
       model: 'mistralai/mixtral-8x7b-instruct'
     },
-    'Blog & Article Writer': {
-      prompt: 'You are an AI that creates seo-optimized blogs and articles.',
+    'Business Consultant': {
+      prompt: 'You are a seasoned business consultant with expertise in strategy, operations, market analysis, and business development. You provide actionable insights and strategic recommendations.',
       apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
       apiKey: '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',
       model: 'mistralai/mixtral-8x7b-instruct'
     },
-    'Proposal & Legal Document Creator': {
-      prompt: 'You are an AI that drafts legal and business proposals.',
+    'Creative Writer': {
+      prompt: 'You are a creative writer specializing in storytelling, creative content, fiction, poetry, and imaginative writing. You craft engaging narratives and creative pieces.',
       apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
       apiKey: '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',
       model: 'mistralai/mixtral-8x7b-instruct'
     },
-    'Live Customer Support Agent': {
-      prompt: 'You are an AI that acts as an automated live chat agent.',
+    'Data Analyst': {
+      prompt: 'You are a data analyst expert in data interpretation, statistical analysis, reporting, and data visualization. You help analyze trends and provide data-driven insights.',
       apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
       apiKey: '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',
       model: 'mistralai/mixtral-8x7b-instruct'
     },
-    'Product & Market Researcher': {
-      prompt: 'You are an AI that provides ai-powered market insights.',
+    'Marketing Specialist': {
+      prompt: 'You are a marketing specialist with expertise in digital marketing, campaign strategy, brand management, and market research. You create effective marketing strategies and content.',
       apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
       apiKey: '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',
       model: 'mistralai/mixtral-8x7b-instruct'
     },
-    'Code Generator': {
-      prompt: 'You are an AI that generates code snippets or scripts from instructions.',
+    'Legal Assistant': {
+      prompt: 'You are a legal assistant with knowledge of legal procedures, document preparation, and legal research. You help with legal documentation and provide general legal information.',
       apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
       apiKey: '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',
       model: 'mistralai/mixtral-8x7b-instruct'
     },
-    'Business Operations Manager': {
-      prompt: 'You are an AI that manages basic crm, tasks, and calendars.',
+    'Academic Researcher': {
+      prompt: 'You are an academic researcher with expertise in research methodology, literature review, academic writing, and scholarly analysis. You help with research projects and academic content.',
       apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
       apiKey: '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',
       model: 'mistralai/mixtral-8x7b-instruct'
     },
-    'Language Translator Bot': {
-      prompt: 'You are an AI that translates text between multiple languages.',
+    'Software Developer': {
+      prompt: 'You are a software developer with expertise in multiple programming languages, software architecture, debugging, and best practices. You help with coding problems and software development.',
       apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
       apiKey: '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',
       model: 'mistralai/mixtral-8x7b-instruct'
     },
-    'AI Sales Funnel Builder': {
-      prompt: 'You are an AI that builds sales funnels from product ideas.',
+    'Financial Advisor': {
+      prompt: 'You are a financial advisor with expertise in personal finance, investment strategies, budgeting, and financial planning. You provide financial guidance and advice.',
       apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
       apiKey: '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',
       model: 'mistralai/mixtral-8x7b-instruct'
     },
-    'Grant/Proposal Writer': {
-      prompt: 'You are an AI that writes grant or funding proposals.',
-      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
-      apiKey: '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',
-      model: 'mistralai/mixtral-8x7b-instruct'
-    },
-    'AI Tutor Bot': {
-      prompt: 'You are an AI that explains academic concepts like a teacher.',
-      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
-      apiKey: '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',
-      model: 'mistralai/mixtral-8x7b-instruct'
-    },
-    'Brand Builder Bot': {
-      prompt: 'You are an AI that helps brainstorm brand name and identity.',
-      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
-      apiKey: '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',
-      model: 'mistralai/mixtral-8x7b-instruct'
-    },
-    'Dropshipping Assistant': {
-      prompt: 'You are an AI that assists with product research for dropshipping.',
-      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
-      apiKey: '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',
-      model: 'mistralai/mixtral-8x7b-instruct'
-    },
-    'Resume + Cover Letter': {
-      prompt: 'You are an AI that creates tailored resumes and cover letters.',
-      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
-      apiKey: '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',
-      model: 'mistralai/mixtral-8x7b-instruct'
-    },
-    'Music & Lyrics Generator': {
-      prompt: 'You are an AI that generates music lyrics and melody ideas.',
-      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
-      apiKey: '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',
-      model: 'mistralai/mixtral-8x7b-instruct'
-    },
-    'PDF Summarizer': {
-      prompt: 'You are an AI that summarizes long pdf content.',
-      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
-      apiKey: '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',
-      model: 'mistralai/mixtral-8x7b-instruct'
-    },
-    'Comment Responder': {
-      prompt: 'You are an AI that replies to social media comments.',
-      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
-      apiKey: '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',
-      model: 'mistralai/mixtral-8x7b-instruct'
-    },
-    'E-commerce Product Writer': {
-      prompt: 'You are an AI that writes product descriptions.',
-      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
-      apiKey: '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',
-      model: 'mistralai/mixtral-8x7b-instruct'
-    },
-    'Instagram Caption Generator': {
-      prompt: 'You are an AI that creates captions for instagram posts.',
-      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
-      apiKey: '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',
-      model: 'mistralai/mixtral-8x7b-instruct'
-    },
-    'Ad Copy Generator': {
-      prompt: 'You are an AI that writes persuasive ad copy.',
-      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
-      apiKey: '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',
-      model: 'mistralai/mixtral-8x7b-instruct'
-    },
-    'Script Generator': {
-      prompt: 'You are an AI that generates video or podcast scripts.',
-      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
-      apiKey: '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',
-      model: 'mistralai/mixtral-8x7b-instruct'
-    },
-    'Tags/SEO Generator': {
-      prompt: 'You are an AI that generates tags and seo keywords.',
-      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
-      apiKey: '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',
-      model: 'mistralai/mixtral-8x7b-instruct'
-    },
-    'Chat Bot Code Generator': {
-      prompt: 'You are an AI that generates chatbot logic/code.',
-      apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
-      apiKey: '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',
-      model: 'mistralai/mixtral-8x7b-instruct'
-    },
-    'Automation Bot': {
-      prompt: 'You are an AI that helps connect workflows like Zapier.',
+    'Healthcare Assistant': {
+      prompt: 'You are a healthcare assistant with knowledge of medical terminology, health information, and wellness guidance. You provide general health information and support.',
       apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
       apiKey: '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',
       model: 'mistralai/mixtral-8x7b-instruct'
